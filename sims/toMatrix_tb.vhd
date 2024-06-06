@@ -6,31 +6,30 @@ library work;
 use work.myPackage.all;
 use work.fixed_pkg.all;
 
-entity tobcd_tb is
-end tobcd_tb;
+entity toMatrix_tb is
+end toMatrix_tb;
 
-architecture testbench of tobcd_tb is
+architecture testbench of toMatrix_tb is
 
-component tobcd is
+component toMatrix is
 port(
     clk : in std_logic;
     en : in std_logic;
-    input : in matrix;
-    output : out std_logic_vector(231 downto 0);
+    input : in std_logic_vector(71 downto 0);
+    output : out matrix;
     done : out std_logic);
 end component;
 --
 signal clk, en, done : std_logic:= '0';
 signal matrix_A : matrix := (others => (others => to_sfixed(0.0, 9, -6)));
-signal result : std_logic_vector(231 downto 0) := (others => '0');
-
+signal input : std_logic_vector(71 downto 0);
 begin
 
-uut: tobcd PORT MAP(
+uut: toMatrix PORT MAP(
     clk => clk,
     en => en,
-    input => matrix_A,
-    output => result,
+    input => input,
+    output => matrix_A,
     done => done);
     
 clock: process
@@ -46,11 +45,15 @@ stim: process
 begin
 wait for 20 ns;
 
---2x2
-matrix_A(0)(0) <= to_sfixed(1.25, 9, -6);
-matrix_A(0)(1) <= to_sfixed(2.87, 9, -6);
-matrix_A(1)(0) <= to_sfixed(-3.10, 9, -6);
-matrix_A(1)(1) <= to_sfixed(4, 9, -6);
+input(71 downto 64) <= "01011011";
+input(63 downto 56) <= "00110001";
+input(55 downto 48) <= "00100000";
+input(47 downto 40) <= "00110010";
+input(39 downto 32) <= "00111011";
+input(31 downto 24) <= "00110011";
+input(23 downto 16) <= "00100000";
+input(15 downto 8) <= "00110100";
+input(7 downto 0) <= "01011101";
 
 
 wait for 20 ns;

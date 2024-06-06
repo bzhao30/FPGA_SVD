@@ -19,12 +19,17 @@ end toBCD;
 architecture behavioral of toBCD is
 signal rst, sign_en, int_en, dec_en, frac_en, nxt_tc, next_en : std_logic := '0';
 signal output_sig : std_logic_vector(231 downto 0) := (others => '0');
-type statetype is (idle, clear, sign, int, dec, frac, nxt, finish);
-signal cs, ns : statetype := idle;
 signal nxtcnt : integer := 0;
 signal sign1, sign2, sign3, sign4 : std_logic_vector(7 downto 0) := (others => '0');
 signal int1, int2, int3, int4, frac1, frac2, frac3, frac4 : std_logic_vector(15 downto 0) := (others => '0');
 signal decimal : std_logic_vector(7 downto 0) := (others => '0');
+signal tempo, tempa : sfixed(9 downto -6) := (others => '0');
+signal debug : std_logic := '0';
+
+
+type statetype is (idle, clear, swait, sign, int, dec, frac, nxt, finish);
+signal cs, ns : statetype := idle;
+
 begin
 
 ------------------BUILD MATRIX TEMPLATE------------
@@ -44,6 +49,7 @@ if rising_edge(clk) then
     if rst = '1' then
         nxtcnt <= 0;
         nxt_tc <= '0';
+        tempa <= (others => '0');
     elsif next_en = '1' and nxt_tc = '0' then 
         nxtcnt <= nxtcnt + 1;
     end if;
@@ -52,10 +58,38 @@ if nxtcnt = 3 and next_en = '1' then
     nxt_tc <= '1';
     nxtcnt <= 0;
 end if;
+
+case nxtcnt is 
+    when 0 => 
+        tempa <= input(0)(0);
+    when 1 =>
+        tempa <= input(0)(1);
+    when 2 =>
+        tempa <= input(1)(0);
+    when 3 =>
+        tempa <= input(1)(1);
+    when others => tempa <= (others => '0');
+end case;
+
+
 end process nxtcounter;
 
+
+flipneg : process(tempa)
+begin
+    if rst = '1' then
+        tempo <= (others => '0');
+    end if;
+    if tempa(9) = '1' then
+        tempo <= fixedmultiply(tempa, to_sfixed(-1, 9, -6));
+    else
+        tempo <= tempa;
+    end if;
+end process flipneg;
+    
+    
+
 signpart : process(clk)
-variable tempo : sfixed(9 downto -6) := (others => '0');
 begin
 if rising_edge(clk) then
     if rst = '1' then
@@ -64,20 +98,10 @@ if rising_edge(clk) then
         sign3 <= (others => '0');
         sign4 <= (others => '0');
     end if;
-    case nxtcnt is 
-        when 0 => 
-            tempo := input(0)(0);
-        when 1 =>
-            tempo := input(0)(1);
-        when 2 =>
-            tempo := input(1)(0);
-        when 3 =>
-            tempo := input(1)(1);
-        when others =>
-    end case;
     
     if sign_en = '1' then
-        if tempo(9) = '1' then
+        if tempa(9) = '1' then
+            debug <= '1';
             case nxtcnt is
                 when 0 =>
                     sign1 <= "00101101"; -- "-"
@@ -107,31 +131,17 @@ end if;
 end process signpart;
 
 intpart : process(clk)
-variable tempo : sfixed(9 downto -6) := (others => '0');
 variable result : std_logic_vector(15 downto 0) := (others => '0');
 begin
-if rising_edge(clk) then
     if rst = '1' then
         int1 <= (others => '0');
         int2 <= (others => '0');
         int3 <= (others => '0');
         int4 <= (others => '0');
     end if;
-    case nxtcnt is 
-        when 0 => 
-            tempo := input(0)(0);
-            int1 <= result;
-        when 1 =>
-            tempo := input(0)(1);
-            int2 <= result;
-        when 2 =>
-            tempo := input(1)(0);
-            int3 <= result;
-        when 3 =>
-            tempo := input(1)(1);
-            int4 <= result;
-        when others =>
-    end case;
+
+if rising_edge(clk) then
+
     
     if int_en = '1' then
         case tempo(8 downto 0) is
@@ -338,12 +348,25 @@ if rising_edge(clk) then
         when others =>
             result := "0000000000000000";
         end case;
+        
+        
+        
+        case nxtcnt is 
+            when 0 => 
+                int1 <= result;
+            when 1 =>
+                int2 <= result;
+            when 2 =>
+                int3 <= result;
+            when 3 =>
+                int4 <= result;
+            when others =>
+        end case;
     end if;
 end if;
 end process intpart;
 
 fracpart : process(clk)
-variable tempo : sfixed(9 downto -6) := (others => '0');
 variable result : std_logic_vector(15 downto 0) := (others => '0');
 begin
 if rising_edge(clk) then
@@ -353,22 +376,7 @@ if rising_edge(clk) then
         frac3 <= (others => '0');
         frac4 <= (others => '0');
     end if;
-    case nxtcnt is 
-        when 0 => 
-            tempo := input(0)(0);
-            frac1 <= result;
-        when 1 =>
-            tempo := input(0)(1);
-            frac2 <= result;
-        when 2 =>
-            tempo := input(1)(0);
-            frac3 <= result;
-        when 3 =>
-            tempo := input(1)(1);
-            frac4 <= result;
-        when others =>
-    end case;
-    
+
     if frac_en = '1' then
         case tempo(-1 downto -6) is
             when "000000" =>
@@ -502,6 +510,18 @@ if rising_edge(clk) then
             when others => 
                 result := "0000000000000000";
         end case;
+        
+     case nxtcnt is 
+        when 0 => 
+            frac1 <= result;
+        when 1 =>
+            frac2 <= result;
+        when 2 =>
+            frac3 <= result;
+        when 3 =>
+            frac4 <= result;
+        when others =>
+    end case;       
     end if;
 end if;
 end process fracpart;
@@ -554,7 +574,8 @@ case CS is
         end if;
     when clear =>
         rst <= '1';
-        ns <= sign;
+        ns <= swait;
+    when swait => ns <= sign;
     when sign =>
         sign_en <= '1';
         ns <= int;
@@ -572,7 +593,7 @@ case CS is
         if nxt_tc = '1' then
             ns <= finish;
         else
-            ns <= sign;
+            ns <= swait;
         end if;
     when finish =>
         done <= '1';
