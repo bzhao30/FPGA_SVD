@@ -1,43 +1,154 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date: 06/05/2024 09:02:48 PM
--- Design Name: 
--- Module Name: transmitter - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
--- 
--- Dependencies: 
--- 
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
--- 
-----------------------------------------------------------------------------------
-
-
 library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.std_logic_1164.all;
+use IEEE.numeric_std.all;
 
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
-
-entity transmitter is
---  Port ( );
+entity transmitter is 
+port(
+    clk : in std_logic;
+    en : in std_logic;
+    data_in : in std_logic_vector(815 downto 0);
+    tx : out std_logic;
+    done : out std_logic);
 end transmitter;
 
-architecture Behavioral of transmitter is
+
+architecture behavioral of transmitter is
+
+signal data : std_logic_vector(1019 downto 0);
+
+signal t_en, baud_tc, bit_tc, s_tc, s_en, rst : std_logic := '0';
+signal tx_sig : std_logic := '1';
+signal baudcount, bitcount : integer := 0;
+type statetype is (idle, clr, setup, trans, finish);
+signal cs, ns : statetype := idle;
 
 begin
+-------------------Counters------------------
+baudcounter : process(clk)
+begin
 
+if rst = '1' then
+  baudcount <= 0;
+  baud_tc <= '0';
+end if;
 
-end Behavioral;
+if rising_edge(clk) then
+if t_en = '1' then
+  baudcount <= baudcount+1; 
+  if baudcount = 103 then
+    baudcount <= 0;
+  end if;       
+end if;
+end if;
+if baudcount = 103 then
+  baud_TC <= '1';
+else
+  baud_TC <= '0';
+end if;      
+
+end process baudcounter;
+
+bitcounter : process(clk)
+begin
+
+if rst = '1' then
+  bitcount <= 0;
+  bit_TC <= '0';
+end if;
+
+if rising_edge(clk) then
+if baud_TC = '1' then
+  bitcount <= bitcount+1;    
+  if bitcount = 1019 then
+    bitcount <= 0;
+  end if;       
+end if;
+end if;
+if bitcount = 1019 and baudcount = 103 then
+  bit_TC <= '1';
+else
+  bit_TC <= '0';
+end if;   
+
+end process bitcounter;
+
+----------------------Shift Register-----------------
+SR : process(clk)
+variable count : integer := 0;
+begin
+if rising_edge(clk) then
+    if t_en = '1' then
+        tx_sig <= data(1019 - bitcount);
+    else
+        tx_sig <= '1';
+    end if;
+    
+    if rst = '1' then 
+        count := 0;
+        s_tc <= '0';
+    elsif s_en = '1' then
+        -- Manually calculate the indices
+        data(1019 - count * 10) <= '0';  -- Start bit
+        data(1010 - count * 10) <= '1';  -- Stop bit
+
+        -- Assign data bits from data_in
+        data(1018 - count * 10) <= data_in(808 - count * 8);
+        data(1017 - count * 10) <= data_in(809 - count * 8);
+        data(1016 - count * 10) <= data_in(810 - count * 8);
+        data(1015 - count * 10) <= data_in(811 - count * 8);
+        data(1014 - count * 10) <= data_in(812 - count * 8);
+        data(1013 - count * 10) <= data_in(813 - count * 8);
+        data(1012 - count * 10) <= data_in(814 - count * 8);
+        data(1011 - count * 10) <= data_in(815 - count * 8);
+        
+        count := count + 1;
+        if count = 102 then
+            count := 0;
+            s_tc <= '1';
+        end if;
+    end if;
+end if;
+end process SR;
+
+tx <= tx_sig;
+--------------------FSM---------------------
+stateupdate: process(clk)
+begin
+if rising_edge(clk) then
+    cs <= ns;
+end if;
+end process stateupdate;
+
+nextstatelogic: process(cs, en, s_tc, bit_tc)
+begin
+ns <= cs;
+rst <= '0';
+s_en <= '0';
+t_en <= '0';
+done <= '0';
+case cs is
+    when idle =>
+        if en = '1' then
+            ns <= clr;
+        end if;
+    when clr =>
+        rst <= '1';
+        ns <= setup;
+    when setup =>
+        s_en <= '1';
+        if s_tc = '1' then
+            ns <= trans;
+        end if;
+    when trans =>
+        t_en <= '1';
+        if bit_tc = '1' then
+            ns <= finish;
+        end if;
+    when finish => 
+        done <= '1';
+        ns <= idle;
+    when others => ns <= idle;
+end case;
+end process nextstatelogic;
+
+end behavioral;
