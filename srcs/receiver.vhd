@@ -5,6 +5,7 @@ use IEEE.numeric_std.all;
 entity receiver is
 port(
     Rx : in std_logic;
+    en : in std_logic;
     clk : in std_logic;
     hard_reset : in std_logic;
     Rxout : out std_logic_vector(71 downto 0);
@@ -18,8 +19,8 @@ signal baudcount, bitcount, datacount : integer := 0;
 signal load, baud_tc, bit_tc, data_tc: std_logic := '0';
 signal rst, count_en, data_en, send : std_logic := '0';
 signal data :  std_logic_vector(7 downto 0) := (others => '0');
-type statetype is (idle, clear, count, move, ssend, finish);
-signal cs, ns : statetype := idle;
+type statetype is (idle, clear, count, move, ssend, finish, init);
+signal cs, ns : statetype := init;
 signal rx_sig : std_logic_vector(71 downto 0) := (others => '0');
 
 begin
@@ -92,7 +93,10 @@ if baudcount = 103 and bitcount = 7 and datacount = 8 then
   data_TC <= '1';
 elsif send = '1' then
   data_TC <= '0';
+else 
+    data_tc <= data_tc;
 end if;   
+
 if hard_reset = '1' then
     data_TC <= '0';
 end if;
@@ -122,11 +126,9 @@ end if;
 if hard_reset = '1' then
     rx_sig <= (others => '0');
 end if;
-if send = '1' then
-    rxout <= rx_sig;
-end if;
 
 end process SR72;
+rxout <= rx_sig;
 
 ---------------------FSM----------------------
 stateupdate: process(clk)
@@ -146,6 +148,10 @@ send <= '0';
 done <= '0';
 
 case cs is 
+    when init => 
+        if en = '1' then 
+            ns <= idle;
+        end if;
     when idle =>
         if rx = '0' then
             ns <= clear;
@@ -170,8 +176,8 @@ case cs is
         ns <= finish;
     when finish =>
         done <= '1';
-        ns <= idle;
-    when others => ns <= idle;
+        ns <= init;
+    when others => ns <= init;
 end case;
 end process nextstatelogic;
 
