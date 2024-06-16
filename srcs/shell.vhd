@@ -8,9 +8,9 @@ use work.fixed_pkg.all;
 
 entity shell is
 port(
-    Rx : in std_logic;
-    clkextport : in std_logic;
-    Tx : out std_logic);
+    RxExtPort : in std_logic;
+    clkExtPort : in std_logic;
+    TxExtPort : out std_logic);
 end shell;
 
 architecture behavioral of shell is
@@ -73,7 +73,7 @@ end component;
 type statetype is (clr, waitRx, to_Matrix, math, to_bcd, setup, trans);
 signal cs, ns : statetype := waitRx;
 signal rx_done, rx_en, tm_en, tm_done, m_en, m_done, tb_en, tb_done, s_en, tx_en, tx_done, hard_reset : std_logic := '0';
-signal clk : std_logic;
+signal rx, tx, clkextsig, clk : std_logic;
 signal rxout : std_logic_vector(71 downto 0) := (others => '0');
 signal matrix_A, matrix_U, matrix_S, matrix_Vt : matrix := (others => (others => to_sfixed(0.0, 9, -6)));
 signal outputU, outputS, outputVt : std_logic_vector(231 downto 0) := (others => '0');
@@ -84,9 +84,13 @@ signal data2 : std_logic_vector(463 downto 0) := (others => '0');
 
 begin
 
+clkextsig <= clkextport;
+rx <= rxextport;
+txextport <= tx;
+
 u1 : clkgen
 port map(
-    clkextport => clkextport,
+    clkextport => clkextsig,
     clkport => clk);
     
 u2 : receiver

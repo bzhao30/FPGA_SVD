@@ -9,9 +9,9 @@ architecture testbench of shell_tb is
 
 component shell is
 port(
-    Rx : in std_logic;
+    RxExtPort : in std_logic;
     clkextport : in std_logic;
-    Tx : out std_logic);
+    TxExtPort : out std_logic);
 end component;
 
 signal Rx, clkextport, Tx : std_logic := '0';
@@ -20,9 +20,9 @@ begin
 
 uut: shell
 PORT MAP(
-    Rx => Rx,
+    RxExtPort => Rx,
     clkextport => clkextport,
-    Tx => Tx);
+    TxExtPort => Tx);
     
 clock: process
 begin
@@ -52,94 +52,6 @@ begin
     Rx <= '0';
     wait for 104 us;
     Rx <= '1';
-    wait for 104 us;
-    Rx <= '0'; -- MSB
-    wait for 104 us;
-    Rx <= '1'; -- stop bit
-    wait for 104 us;
-
-    -- ASCII '1' : 00110001
-    Rx <= '0'; -- start bit
-    wait for 104 us;
-    Rx <= '1'; -- LSB
-    wait for 104 us;
-    Rx <= '0';
-    wait for 104 us;
-    Rx <= '0';
-    wait for 104 us;
-    Rx <= '0';
-    wait for 104 us;
-    Rx <= '1';
-    wait for 104 us;
-    Rx <= '1';
-    wait for 104 us;
-    Rx <= '0';
-    wait for 104 us;
-    Rx <= '0'; -- MSB
-    wait for 104 us;
-    Rx <= '1'; -- stop bit
-    wait for 104 us;
-
-    -- ASCII ' ' : 00100000
-    Rx <= '0'; -- start bit
-    wait for 104 us;
-    Rx <= '0'; -- LSB
-    wait for 104 us;
-    Rx <= '0';
-    wait for 104 us;
-    Rx <= '0';
-    wait for 104 us;
-    Rx <= '0';
-    wait for 104 us;
-    Rx <= '0';
-    wait for 104 us;
-    Rx <= '1';
-    wait for 104 us;
-    Rx <= '0';
-    wait for 104 us;
-    Rx <= '0'; -- MSB
-    wait for 104 us;
-    Rx <= '1'; -- stop bit
-    wait for 104 us;
-
-    -- ASCII '2' : 00110010
-    Rx <= '0'; -- start bit
-    wait for 104 us;
-    Rx <= '0'; -- LSB
-    wait for 104 us;
-    Rx <= '1';
-    wait for 104 us;
-    Rx <= '0';
-    wait for 104 us;
-    Rx <= '0';
-    wait for 104 us;
-    Rx <= '1';
-    wait for 104 us;
-    Rx <= '1';
-    wait for 104 us;
-    Rx <= '0';
-    wait for 104 us;
-    Rx <= '0'; -- MSB
-    wait for 104 us;
-    Rx <= '1'; -- stop bit
-    wait for 104 us;
-
-    -- ASCII ';' : 00111011
-    Rx <= '0'; -- start bit
-    wait for 104 us;
-    Rx <= '1'; -- LSB
-    wait for 104 us;
-    Rx <= '1';
-    wait for 104 us;
-    Rx <= '0';
-    wait for 104 us;
-    Rx <= '1';
-    wait for 104 us;
-    Rx <= '1';
-    wait for 104 us;
-    Rx <= '1';
-    wait for 104 us;
-    Rx <= '0';
     wait for 104 us;
     Rx <= '0'; -- MSB
     wait for 104 us;
@@ -190,14 +102,102 @@ begin
     Rx <= '1'; -- stop bit
     wait for 104 us;
 
-    -- ASCII '4' : 00110100
+    -- ASCII '0' : 00110000
     Rx <= '0'; -- start bit
     wait for 104 us;
     Rx <= '0'; -- LSB
     wait for 104 us;
     Rx <= '0';
     wait for 104 us;
+    Rx <= '0';
+    wait for 104 us;
+    Rx <= '0';
+    wait for 104 us;
     Rx <= '1';
+    wait for 104 us;
+    Rx <= '1';
+    wait for 104 us;
+    Rx <= '0';
+    wait for 104 us;
+    Rx <= '0'; -- MSB
+    wait for 104 us;
+    Rx <= '1'; -- stop bit
+    wait for 104 us;
+
+    -- ASCII ';' : 00111011
+    Rx <= '0'; -- start bit
+    wait for 104 us;
+    Rx <= '1'; -- LSB
+    wait for 104 us;
+    Rx <= '1';
+    wait for 104 us;
+    Rx <= '0';
+    wait for 104 us;
+    Rx <= '1';
+    wait for 104 us;
+    Rx <= '1';
+    wait for 104 us;
+    Rx <= '1';
+    wait for 104 us;
+    Rx <= '0';
+    wait for 104 us;
+    Rx <= '0'; -- MSB
+    wait for 104 us;
+    Rx <= '1'; -- stop bit
+    wait for 104 us;
+
+    -- ASCII '5' : 00110101
+    Rx <= '0'; -- start bit
+    wait for 104 us;
+    Rx <= '1'; -- LSB
+    wait for 104 us;
+    Rx <= '0';
+    wait for 104 us;
+    Rx <= '1';
+    wait for 104 us;
+    Rx <= '0';
+    wait for 104 us;
+    Rx <= '1';
+    wait for 104 us;
+    Rx <= '1';
+    wait for 104 us;
+    Rx <= '0';
+    wait for 104 us;
+    Rx <= '0'; -- MSB
+    wait for 104 us;
+    Rx <= '1'; -- stop bit
+    wait for 104 us;
+
+    -- ASCII ' ' : 00100000
+    Rx <= '0'; -- start bit
+    wait for 104 us;
+    Rx <= '0'; -- LSB
+    wait for 104 us;
+    Rx <= '0';
+    wait for 104 us;
+    Rx <= '0';
+    wait for 104 us;
+    Rx <= '0';
+    wait for 104 us;
+    Rx <= '0';
+    wait for 104 us;
+    Rx <= '1';
+    wait for 104 us;
+    Rx <= '0';
+    wait for 104 us;
+    Rx <= '0'; -- MSB
+    wait for 104 us;
+    Rx <= '1'; -- stop bit
+    wait for 104 us;
+
+    -- ASCII '1' : 00110001
+    Rx <= '0'; -- start bit
+    wait for 104 us;
+    Rx <= '1'; -- LSB
+    wait for 104 us;
+    Rx <= '0';
+    wait for 104 us;
+    Rx <= '0';
     wait for 104 us;
     Rx <= '0';
     wait for 104 us;

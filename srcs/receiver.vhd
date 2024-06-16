@@ -81,27 +81,25 @@ if send = '1' then
   datacount <= 0;
 end if;
 
-if rising_edge(clk) then
-if bit_tc = '1' and data_tc = '0' then
-  datacount <= datacount+1;  
-  if datacount = 8 then
-    datacount <= 0;
-  end if;       
-end if;
-end if;
-if baudcount = 103 and bitcount = 7 and datacount = 8 then
-  data_TC <= '1';
-elsif send = '1' then
-  data_TC <= '0';
-else 
-    data_tc <= data_tc;
-end if;   
 
-if hard_reset = '1' then
-    data_TC <= '0';
+if rising_edge(clk) then
+    if bit_tc = '1' and data_tc = '0' then
+      datacount <= datacount+1;  
+      if datacount = 8 then
+        datacount <= 0;
+      end if;       
+    end if;
+    
+    
+    if baudcount = 103 and bitcount = 7 and datacount = 8 then
+        data_TC <= '1';
+    elsif hard_reset = '1' then
+        data_tc <= '0';
+    end if;
 end if;
 
 end process datacounter;
+
 
 ----------------SHIFT REGISTERS----------------
 SR8 : process(clk)
