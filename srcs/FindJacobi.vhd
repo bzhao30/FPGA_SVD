@@ -1,3 +1,4 @@
+-- Performs the Hestenes-Jacobi algorithm for a 2x2 Matrix
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
@@ -96,6 +97,7 @@ port map(
 ----------------get sin, cos----------------
 Apt <= transpose(A_in);
 
+-- Get the product of A^T*A
 MATA: process(clk)
 variable alpha, beta, gamma, tau_var, abstau_var: sfixed(9 downto -6) := to_sfixed(0.0, 9, -6);
 begin
@@ -135,6 +137,7 @@ abstau <= abstau_var;
 
 end process MATA;
 
+-- Find the tangent angle for Jacobi Rotation Matx
 findtan: process(clk)
 variable tan_var : sfixed(9 downto -6) := (others => '0');
 begin
@@ -147,6 +150,7 @@ tan <= tan_var;
 tan_in <= resize(1+fixedmultiply(tan_var, tan_var), 9, -6);
 end process findtan;
 
+-- Find Sin, Cos
 findsincos : process(clk)
 begin
 if rising_edge(clk) then

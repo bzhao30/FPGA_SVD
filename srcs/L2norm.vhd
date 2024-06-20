@@ -1,3 +1,4 @@
+-- This computes the Euclidean Norm of a matrix
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;

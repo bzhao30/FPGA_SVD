@@ -1,3 +1,4 @@
+-- Converts the sfixed matrix format into binary ASCII code for transmission
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
@@ -42,7 +43,7 @@ output_sig(7 downto 0) <= "01011101";
 --decimal points
 decimal <= "00101110";
 
-
+-- Determines which index of matrix we are translating
 nxtcounter : process(clk)
 begin
 if rising_edge(clk) then
@@ -74,7 +75,7 @@ end case;
 
 end process nxtcounter;
 
-
+-- Accounts for the signed aspect of sfixed
 flipneg : process(tempa)
 begin
     if rst = '1' then
@@ -88,7 +89,7 @@ begin
 end process flipneg;
     
     
-
+-- ASCII for sign part of ultimate printed text
 signpart : process(clk)
 begin
 if rising_edge(clk) then
@@ -130,6 +131,7 @@ if rising_edge(clk) then
 end if;
 end process signpart;
 
+-- Determines the whole number part of the sfixed to ASCII conversion
 intpart : process(clk)
 variable result : std_logic_vector(15 downto 0) := (others => '0');
 begin
@@ -142,7 +144,7 @@ begin
 
 if rising_edge(clk) then
 
-    
+    -- LUT was probably the best way to go here
     if int_en = '1' then
         case tempo(8 downto 0) is
         when "000000000" =>
@@ -366,6 +368,7 @@ if rising_edge(clk) then
 end if;
 end process intpart;
 
+-- Same but for fractional component
 fracpart : process(clk)
 variable result : std_logic_vector(15 downto 0) := (others => '0');
 begin

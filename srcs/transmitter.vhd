@@ -1,3 +1,4 @@
+-- Transmits resulting SVD in ASCII form over to PuTTY
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
@@ -6,6 +7,7 @@ entity transmitter is
 port(
     clk : in std_logic;
     en : in std_logic;
+    hard_reset : in std_logic;
     data_in : in std_logic_vector(815 downto 0);
     tx : out std_logic;
     done : out std_logic);
@@ -16,10 +18,10 @@ architecture behavioral of transmitter is
 
 signal data : std_logic_vector(1019 downto 0);
 
-signal t_en, baud_tc, bit_tc, s_tc, s_en, rst : std_logic := '0';
+signal t_en, baud_tc, bit_tc, s_tc, s_en, r_en, rst : std_logic := '0';
 signal tx_sig : std_logic := '1';
 signal baudcount, bitcount : integer := 0;
-type statetype is (idle, clr, setup, trans, finish);
+type statetype is (idle, clr, setup, trans, finish, reset);
 signal cs, ns : statetype := idle;
 
 begin
@@ -73,17 +75,20 @@ end if;
 end process bitcounter;
 
 ----------------------Shift Register-----------------
-SR : process(clk)
+SR : process(clk, hard_reset)
 variable count : integer := 0;
 begin
 if rising_edge(clk) then
+
     if t_en = '1' then
         tx_sig <= data(1019 - bitcount);
     else
         tx_sig <= '1';
     end if;
-    
-    if rst = '1' then 
+    -- Can clear screen / send over the singular value decomposition ASCII depending on case
+    if r_en = '1' then
+        data <= "100011011010101101101001100100101001010010001101101010110110101001000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111";
+    elsif rst = '1' then 
         count := 0;
         s_tc <= '0';
     elsif s_en = '1' then
@@ -119,29 +124,44 @@ if rising_edge(clk) then
 end if;
 end process stateupdate;
 
-nextstatelogic: process(cs, en, s_tc, bit_tc)
+nextstatelogic: process(cs, en, s_tc, bit_tc, hard_reset)
 begin
 ns <= cs;
 rst <= '0';
 s_en <= '0';
 t_en <= '0';
 done <= '0';
+r_en <= '0';
 case cs is
     when idle =>
-        if en = '1' then
+        if hard_reset = '1' then
+            ns <= reset;
+        elsif en = '1' then
             ns <= clr;
         end if;
+    when reset =>
+        r_en <= '1';
+        ns <= trans;
     when clr =>
         rst <= '1';
-        ns <= setup;
+        if hard_reset = '1' then
+            ns <= reset;
+        else
+            ns <= setup;
+        end if;
     when setup =>
         s_en <= '1';
-        if s_tc = '1' then
+        if hard_reset = '1' then
+            ns <= reset;
+            
+        elsif s_tc = '1' then
             ns <= trans;
         end if;
     when trans =>
         t_en <= '1';
-        if bit_tc = '1' then
+        if hard_reset = '1' then
+            ns <= reset;
+        elsif bit_tc = '1' then
             ns <= finish;
         end if;
     when finish => 

@@ -1,3 +1,4 @@
+-- Top Level for the mathematical component before transmitting over UART
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
@@ -108,7 +109,7 @@ end if;
    
 if j_done = '1' then
     i <= i+1;
-    if i = 100 then
+    if i = 100 then -- iterate until convergence approximately
         i <= 0;
     end if;
 end if;
@@ -147,6 +148,7 @@ end if;
 end if;
 end process counter_K;
 
+-- Build the matrix Sigma of the singular values
 build1 : process (clk)
 begin
 if rst = '1' then
@@ -168,6 +170,7 @@ if rising_edge(clk) then
 end if;
 end process build1;
 
+-- Build the matrix U
 build2: process(clk)
 begin
 if rst = '1' then

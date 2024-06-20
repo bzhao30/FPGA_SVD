@@ -1,3 +1,4 @@
+-- Top Level Shell for SVD matrix calculator
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
@@ -10,6 +11,7 @@ entity shell is
 port(
     RxExtPort : in std_logic;
     clkExtPort : in std_logic;
+    buttonPort : in std_logic;
     TxExtPort : out std_logic);
 end shell;
 
@@ -58,6 +60,7 @@ component transmitter is
 port(
     clk : in std_logic;
     en : in std_logic;
+    hard_reset : in std_logic;
     data_in : in std_logic_vector(815 downto 0);
     tx : out std_logic;
     done : out std_logic);
@@ -69,9 +72,17 @@ port(
     clkPort: out std_logic);
 end component;
 
+component buttoninterface is 
+  port(
+       clk: in std_logic;
+       buttonPort: in std_logic;
+       buttonMpPort: out std_logic);
+end component;
+
 
 type statetype is (clr, waitRx, to_Matrix, math, to_bcd, setup, trans);
 signal cs, ns : statetype := waitRx;
+signal bport, bmp : std_logic := '0';
 signal rx_done, rx_en, tm_en, tm_done, m_en, m_done, tb_en, tb_done, s_en, tx_en, tx_done, hard_reset : std_logic := '0';
 signal rx, tx, clkextsig, clk : std_logic;
 signal rxout : std_logic_vector(71 downto 0) := (others => '0');
@@ -87,6 +98,7 @@ begin
 clkextsig <= clkextport;
 rx <= rxextport;
 txextport <= tx;
+bport <= buttonport;
 
 u1 : clkgen
 port map(
@@ -146,13 +158,20 @@ u8: transmitter
 port map(
     clk => clk,
     en => tx_en,
+    hard_reset => hard_reset,
     data_in => data,
     tx => tx_sig,
     done => tx_done);
-    
+
+u9: buttonInterface
+port map(
+    clk => clk,
+    buttonPort => bport,
+    buttonMpPort => hard_reset);
     
 --------------------Datapath-------------
 
+-- Load in ASCII values to transmit to PuTTY over UART
 process(clk)
 begin
 if s_en = '1' then --(815 downto 0);
@@ -170,11 +189,14 @@ if s_en = '1' then --(815 downto 0);
     data1(231 downto 0) <= outputU;   --outputU
     data2(463 downto 232) <= outputS;   --outputS
     data2(231 downto 0)   <= outputVt;   -- outputVt
+    
 
 end if;
 end process;    
 
 tx <= tx_sig;
+
+
 -----------------------FSM--------------------
 stateupdate : process(clk)
 begin
@@ -183,7 +205,7 @@ if rising_edge(clk) then
 end if;
 end process stateupdate;
 
-nextstatelogic : process(cs, rx_done, tm_done, m_done, tb_done, tx_done)
+nextstatelogic : process(cs, rx_done, tm_done, m_done, tb_done, tx_done, hard_reset)
 begin
 ns <= cs;
 tm_en <= '0';
@@ -191,7 +213,6 @@ m_en <= '0';
 tb_en <= '0';
 s_en <= '0';
 tx_en <= '0';
-hard_reset <= '0';
 rx_en <= '0';
 
 case cs is
@@ -202,29 +223,40 @@ case cs is
         end if;
     when to_matrix =>
         tm_en <= '1';
-        if tm_done = '1' then
+        if hard_reset = '1' then
+            ns <= waitRx;
+        elsif tm_done = '1' then
             ns <= math;
         end if;
     when math =>    
         m_en <= '1';
-        if m_done = '1' then
+        if hard_reset = '1' then
+            ns <= waitRx;
+        elsif m_done = '1' then
             ns <= to_bcd;
         end if;
     when to_bcd =>
         tb_en <= '1';
-        if tb_done = '1' then
+        if hard_reset = '1' then
+            ns <= waitRx;
+        elsif tb_done = '1' then
             ns <= setup;
         end if;
     when setup =>
         s_en <= '1';
-        ns <= trans;
+        if hard_reset = '1' then
+            ns <= waitRx;
+        else
+            ns <= trans;
+        end if;
     when trans =>
         tx_en <= '1';
-        if tx_done = '1' then
+        if hard_reset = '1' then
+            ns <= waitRx;        
+        elsif tx_done = '1' then
             ns <= clr;
         end if;
     when clr => 
-        hard_reset <= '1';
         ns <= waitRx;
     when others => ns <= clr;
 end case;

@@ -1,3 +1,4 @@
+-- Converts received ASCII binary into an sfixed matrix. Takes in form [1 2;3 4]
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
@@ -29,6 +30,7 @@ signal cs, ns : statetype := idle;
 
 begin
 
+-- Sets up counter for next process
 readcounter : process(clk)
 begin
 if rising_edge(clk) then
@@ -48,6 +50,7 @@ end if;
 
 end process readcounter;
 
+-- For each number it inputs into matrix
 readp : process(clk)
 variable readin : std_logic_vector(7 downto 0) := (others => '0');
 variable result : sfixed(9 downto -6) := (others => '0');

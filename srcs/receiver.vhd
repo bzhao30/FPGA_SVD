@@ -1,3 +1,4 @@
+-- Receives ASCII input from PuTTY over UART
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
@@ -74,7 +75,8 @@ end if;
 
 end process bitcounter;
 
-datacounter : process(clk)
+-- Sends signals to controller letting it know when all data has been received
+datacounter : process(clk, hard_reset)
 begin
 
 if send = '1' then
@@ -102,28 +104,32 @@ end process datacounter;
 
 
 ----------------SHIFT REGISTERS----------------
-SR8 : process(clk)
+-- receives the incoming UART and writes into data signal
+SR8 : process(clk, hard_reset)
 begin
+if hard_reset = '1' then
+    data <= (others => '0');
+end if;
 if rising_edge(clk) then
     if baud_tc = '1' and bit_tc = '0' then
         data <= RX & data(7 downto 1);
     end if;
 end if;
-if hard_reset = '1' then
-    data <= (others => '0');
-end if;
+
 end process SR8;
 
-SR72 : process(clk)
+-- loads each character into a continuous string of ascii 
+SR72 : process(clk, hard_reset)
 begin
+if hard_reset = '1' then
+    rx_sig <= (others => '0');
+end if;
 if rising_edge(clk) then
     if data_en = '1' then
         rx_sig <= rx_sig(63 downto 0) & data;
     end if;
 end if;
-if hard_reset = '1' then
-    rx_sig <= (others => '0');
-end if;
+
 
 end process SR72;
 rxout <= rx_sig;
