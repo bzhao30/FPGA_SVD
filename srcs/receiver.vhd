@@ -113,6 +113,8 @@ end if;
 if rising_edge(clk) then
     if baud_tc = '1' and bit_tc = '0' then
         data <= RX & data(7 downto 1);
+    elsif rst = '1' then
+        data <= (others => '0');
     end if;
 end if;
 

@@ -107,7 +107,7 @@ if rising_edge(clk) then
         data(1011 - count * 10) <= data_in(815 - count * 8);
         
         count := count + 1;
-        if count = 102 then
+        if count = 101 then
             count := 0;
             s_tc <= '1';
         end if;
