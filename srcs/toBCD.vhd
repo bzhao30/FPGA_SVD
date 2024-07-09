@@ -135,14 +135,15 @@ end process signpart;
 intpart : process(clk)
 variable result : std_logic_vector(15 downto 0) := (others => '0');
 begin
+
+
+if rising_edge(clk) then
     if rst = '1' then
         int1 <= (others => '0');
         int2 <= (others => '0');
         int3 <= (others => '0');
         int4 <= (others => '0');
     end if;
-
-if rising_edge(clk) then
 
     -- LUT was probably the best way to go here
     if int_en = '1' then

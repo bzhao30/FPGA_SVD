@@ -49,12 +49,13 @@ port map(
 counter_j : process(clk)
 begin
 
+
+
+if rising_edge(clk) then
 if rst = '1' then
     j <= 0;
     J_TC <= '0';
 end if;
-
-if rising_edge(clk) then
 if calc = '1' then
     j <= j+1; 
     if j = 1 then
@@ -73,12 +74,13 @@ end process counter_j;
 counter_I : process(clk)
 begin
 
+
+
+if rising_edge(clk) then
 if rst = '1' then
     i <= 0;
     I_TC <= '0';
 end if;
-
-if rising_edge(clk) then
 if J_TC = '1' then
     i <= i+1;  
     if i = 1 then

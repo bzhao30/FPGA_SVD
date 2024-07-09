@@ -56,12 +56,13 @@ end process order;
 counter_j : process(clk)
 begin
 
+
+
+if rising_edge(clk) then
 if rst = '1' then
     j <= 0;
     sort_done <= '0';
 end if;
-
-if rising_edge(clk) then
 if sort_en = '1' then
     j <= j+1;    
     if j = 1 then

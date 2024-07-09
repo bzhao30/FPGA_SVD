@@ -29,12 +29,13 @@ begin
 baudcounter : process(clk)
 begin
 
+
+
+if rising_edge(clk) then
 if rst = '1' then
   baudcount <= 0;
   baud_tc <= '0';
 end if;
-
-if rising_edge(clk) then
 if t_en = '1' then
   baudcount <= baudcount+1; 
   if baudcount = 103 then
@@ -53,12 +54,13 @@ end process baudcounter;
 bitcounter : process(clk)
 begin
 
+
+
+if rising_edge(clk) then
 if rst = '1' then
   bitcount <= 0;
   bit_TC <= '0';
 end if;
-
-if rising_edge(clk) then
 if baud_TC = '1' then
   bitcount <= bitcount+1;    
   if bitcount = 1019 then

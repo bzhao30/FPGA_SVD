@@ -151,10 +151,11 @@ end process counter_K;
 -- Build the matrix Sigma of the singular values
 build1 : process (clk)
 begin
+
+if rising_edge(clk) then
 if rst = '1' then
     S <= (others => (others => to_sfixed(0.0, 9, -6)));
 end if;
-if rising_edge(clk) then
     if u_en = '1' then
         A_sig <= (others => (others => to_sfixed(0.0, 9, -6)));
     end if;
@@ -173,10 +174,11 @@ end process build1;
 -- Build the matrix U
 build2: process(clk)
 begin
+
+if rising_edge(clk) then
 if rst = '1' then
     U <= (others => (others => to_sfixed(0.0, 9, -6)));
 end if;
-if rising_edge(clk) then
 if U_en = '1' then
     if skk = to_sfixed(0, 9, -6) then
         U(0)(k) <= to_sfixed(0, 9, -6);

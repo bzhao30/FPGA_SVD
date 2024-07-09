@@ -33,12 +33,13 @@ begin
   counter_K : process(clk, rst, calc, k)
   begin
     
+
+    
+    if rising_edge(clk) then
     if rst = '1' then
       k <= 0;
       K_TC <= '0';
     end if;
-    
-    if rising_edge(clk) then
     if calc = '1' then
       k <= k+1; 
       if k = 1 then
@@ -57,12 +58,13 @@ begin
   counter_J : process(clk, rst, k_TC, j, k)
   begin
 
+
+
+    if rising_edge(clk) then
     if rst = '1' then
       j <= 0;
       J_TC <= '0';
     end if;
-
-    if rising_edge(clk) then
     if k_TC = '1' then
       j <= j+1;    
       if j = 1 then
@@ -81,12 +83,13 @@ begin
   counter_I : process(clk, rst, J_TC, i, j)
   begin
 
+
+
+    if rising_edge(clk) then
     if rst = '1' then
       i <= 0;
       I_TC <= '0';
     end if;
-
-    if rising_edge(clk) then
     if J_TC = '1' then
       i <= i+1;  
       if i = 1 then

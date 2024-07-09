@@ -30,12 +30,13 @@ begin
 baudcounter : process(clk)
 begin
 
+
+
+if rising_edge(clk) then
 if rst = '1' then
   baudcount <= 0;
   baud_tc <= '0';
 end if;
-
-if rising_edge(clk) then
 if count_en = '1' then
   baudcount <= baudcount+1; 
   if baudcount = 103 then
@@ -54,12 +55,13 @@ end process baudcounter;
 bitcounter : process(clk)
 begin
 
+
+
+if rising_edge(clk) then
 if rst = '1' then
   bitcount <= 0;
   bit_TC <= '0';
 end if;
-
-if rising_edge(clk) then
 if baud_TC = '1' then
   bitcount <= bitcount+1;    
   if bitcount = 8 then
@@ -79,12 +81,13 @@ end process bitcounter;
 datacounter : process(clk, hard_reset)
 begin
 
-if send = '1' then
-  datacount <= 0;
-end if;
+
 
 
 if rising_edge(clk) then
+if send = '1' then
+  datacount <= 0;
+end if;
     if bit_tc = '1' and data_tc = '0' then
       datacount <= datacount+1;  
       if datacount = 8 then
@@ -107,10 +110,11 @@ end process datacounter;
 -- receives the incoming UART and writes into data signal
 SR8 : process(clk, hard_reset)
 begin
+
+if rising_edge(clk) then
 if hard_reset = '1' then
     data <= (others => '0');
 end if;
-if rising_edge(clk) then
     if baud_tc = '1' and bit_tc = '0' then
         data <= RX & data(7 downto 1);
     elsif rst = '1' then
@@ -123,10 +127,11 @@ end process SR8;
 -- loads each character into a continuous string of ascii 
 SR72 : process(clk, hard_reset)
 begin
+
+if rising_edge(clk) then
 if hard_reset = '1' then
     rx_sig <= (others => '0');
 end if;
-if rising_edge(clk) then
     if data_en = '1' then
         rx_sig <= rx_sig(63 downto 0) & data;
     end if;

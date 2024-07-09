@@ -30,12 +30,13 @@ begin
 counter_i : process(clk)
 begin
 
+
+
+if rising_edge(clk) then
 if rst = '1' then
     i <= 0;
     i_TC <= '0';
 end if;
-
-if rising_edge(clk) then
 if calc = '1' then
     i <= i+1; 
     if i = 16 then
