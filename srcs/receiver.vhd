@@ -29,38 +29,35 @@ begin
 ------------------COUNTERS---------------
 baudcounter : process(clk)
 begin
-
-
-
 if rising_edge(clk) then
-if rst = '1' then
+if rst = '1' or hard_reset = '1' then
   baudcount <= 0;
-  baud_tc <= '0';
 end if;
 if count_en = '1' then
   baudcount <= baudcount+1; 
-  if baudcount = 103 then
+  if baudcount = 12 then
     baudcount <= 0;
   end if;       
 end if;
-end if;
-if baudcount = 103 then
-  baud_TC <= '1';
-else
-  baud_TC <= '0';
-end if;      
+end if;   
 
 end process baudcounter;
+
+process(baudcount) 
+begin
+if baudcount = 12 then
+    baud_TC <= '1';
+else
+    baud_TC <= '0';
+end if;
+end process;
 
 bitcounter : process(clk)
 begin
 
-
-
 if rising_edge(clk) then
-if rst = '1' then
+if rst = '1' or hard_reset = '1' then
   bitcount <= 0;
-  bit_TC <= '0';
 end if;
 if baud_TC = '1' then
   bitcount <= bitcount+1;    
@@ -69,13 +66,18 @@ if baud_TC = '1' then
   end if;       
 end if;
 end if;
-if bitcount = 8 and baudcount = 103 then
+
+
+end process bitcounter;
+
+process(baudcount, bitcount) 
+begin
+if bitcount = 8 and baudcount = 12 then
   bit_TC <= '1';
 else
   bit_TC <= '0';
 end if;   
-
-end process bitcounter;
+end process;
 
 -- Sends signals to controller letting it know when all data has been received
 datacounter : process(clk, hard_reset)
@@ -85,7 +87,7 @@ begin
 
 
 if rising_edge(clk) then
-if send = '1' then
+if send = '1' or hard_reset = '1' then
   datacount <= 0;
 end if;
     if bit_tc = '1' and data_tc = '0' then
@@ -94,16 +96,21 @@ end if;
         datacount <= 0;
       end if;       
     end if;
-    
-    
-    if baudcount = 103 and bitcount = 7 and datacount = 8 then
+
+end if;
+
+end process datacounter;
+
+process(baudcount, bitcount, datacount, clk) 
+begin
+if rising_edge(clk) then    
+    if baudcount = 12 and bitcount = 7 and datacount = 8 then
         data_TC <= '1';
     elsif hard_reset = '1' then
         data_tc <= '0';
     end if;
 end if;
-
-end process datacounter;
+end process;
 
 
 ----------------SHIFT REGISTERS----------------

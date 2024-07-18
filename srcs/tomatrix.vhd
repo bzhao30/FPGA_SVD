@@ -50,6 +50,7 @@ end if;
 
 end process readcounter;
 
+
 -- For each number it inputs into matrix
 readp : process(clk)
 variable readin : std_logic_vector(7 downto 0) := (others => '0');

@@ -48,65 +48,60 @@ port map(
 ------------------TWO COUNTERS----------------
 counter_j : process(clk)
 begin
-
-
-
-if rising_edge(clk) then
-if rst = '1' then
-    j <= 0;
-    J_TC <= '0';
-end if;
-if calc = '1' then
-    j <= j+1; 
-    if j = 1 then
-        j <= 0;
-    end if;       
-end if;
-end if;
-if j = 1 then
-    J_TC <= '1';
-else
-    J_TC <= '0';
-end if; 
-
+    if rising_edge(clk) then
+        if rst = '1' then
+            j <= 0;
+        elsif calc = '1' then
+            j <= j + 1; 
+            if j = 1 then
+                j <= 0;
+            end if;       
+        end if;
+    end if;
 end process counter_j;
 
-counter_I : process(clk)
+J_TC_process : process(j)
 begin
+    if j = 1 then
+        J_TC <= '1';
+    else
+        J_TC <= '0';
+    end if;
+end process J_TC_process;
 
+counter_i : process(clk)
+begin
+    if rising_edge(clk) then
+        if rst = '1' then
+            i <= 0;
+        elsif J_TC = '1' then
+            i <= i + 1;  
+            if i = 1 then
+                i <= 0;
+            end if;  
+        end if;     
+    end if;
+end process counter_i;
 
-
-if rising_edge(clk) then
-if rst = '1' then
-    i <= 0;
-    I_TC <= '0';
-end if;
-if J_TC = '1' then
-    i <= i+1;  
-    if i = 1 then
-        i <= 0;
-    end if;  
-end if;     
-end if;
-if i = 1 and j = 1 then
-    I_TC <= '1';
-else
-    I_TC <= '0';
-end if;   
-
-end process counter_I;
+I_TC_process : process(i, j)
+begin
+    if i = 1 and j = 1 then
+        I_TC <= '1';
+    else
+        I_TC <= '0';
+    end if;
+end process I_TC_process;
 
 -----------------CALCULATION-------------
 SOS: process(clk)
 begin
-if rising_edge(clk) then
-    if RST = '1' then
-        SumofSquares <= (others => '0');
-    elsif calc = '1' then
-        SumofSquares <= resize(SumofSquares + fixedmultiply(matrix_A(i)(j), matrix_A(i)(j)), 9, -6);
+    if rising_edge(clk) then
+        if RST = '1' then
+            SumofSquares <= (others => '0');
+        elsif calc = '1' then
+            SumofSquares <= resize(SumofSquares + fixedmultiply(matrix_A(i)(j), matrix_A(i)(j)), 9, -6);
+        end if;
     end if;
-end if;
-
 end process SOS;
 
 result <= result_sig;
@@ -114,43 +109,42 @@ result <= result_sig;
 --------------------FSM--------------------------
 stateupdate: process(clk)
 begin
-if rising_edge(clk) then
-    CS <= NS;
-end if;
+    if rising_edge(clk) then
+        CS <= NS;
+    end if;
 end process stateupdate;
 
-nextstatelogic: process(CS, en, sqrt_done, i_TC)
+nextstatelogic: process(CS, en, sqrt_done, I_TC)
 begin
-NS <= CS;
-rst <= '0';
-calc <= '0';
-sqrt_en <= '0';
-done <= '0';
+    NS <= CS;
+    rst <= '0';
+    calc <= '0';
+    sqrt_en <= '0';
+    done <= '0';
 
-case CS is
-    when idle =>
-        if en = '1' then
-            NS <= clear;
-        end if;
-    when clear =>
-        rst <= '1';
-        ns <= calculate;
-    when calculate =>
-        calc <= '1';
-        if I_TC = '1' then
-            NS <= sqrt;
-        end if;
-    when sqrt =>
-        sqrt_en <= '1';
-        if sqrt_done = '1' then
-            ns <= finish;
-        end if;
-    when finish =>
-        done <= '1';
-        NS <= idle;
-    when others => ns <= idle;
-end case;
+    case CS is
+        when idle =>
+            if en = '1' then
+                NS <= clear;
+            end if;
+        when clear =>
+            rst <= '1';
+            ns <= calculate;
+        when calculate =>
+            calc <= '1';
+            if I_TC = '1' then
+                NS <= sqrt;
+            end if;
+        when sqrt =>
+            sqrt_en <= '1';
+            if sqrt_done = '1' then
+                ns <= finish;
+            end if;
+        when finish =>
+            done <= '1';
+            NS <= idle;
+        when others => ns <= idle;
+    end case;
 end process nextstatelogic;
-
 
 end behavioral;

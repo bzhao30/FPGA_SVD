@@ -14,7 +14,7 @@ end clkgen;
 
 architecture behavioral of clkgen is
 
-  constant clkDividerTC: integer := 50;
+  constant clkDividerTC: integer := 400;
   constant countLen: integer := integer(ceil(log2(real(clkDividerTC))));
   signal clkDividerCtr: unsigned(countLen-1 downto 0) := (others => '0');
   signal clkTog: std_logic := '0';

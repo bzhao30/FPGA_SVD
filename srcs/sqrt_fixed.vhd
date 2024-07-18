@@ -35,7 +35,6 @@ begin
 if rising_edge(clk) then
 if rst = '1' then
     i <= 0;
-    i_TC <= '0';
 end if;
 if calc = '1' then
     i <= i+1; 
@@ -44,13 +43,17 @@ if calc = '1' then
     end if;       
 end if;
 end if;
+
+
+end process counter_i;
+
+process(i, in1) begin
 if i = 16 or in1 = to_sfixed(0, 9, -6) then
     I_TC <= '1';
 else
     I_TC <= '0';
 end if; 
-
-end process counter_i;
+end process;
 
 -------------------Arithmetic-------------------
 arithmetic : process(clk)

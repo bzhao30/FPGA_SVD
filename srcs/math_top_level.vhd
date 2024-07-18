@@ -99,7 +99,6 @@ begin
 if rising_edge(clk) then
 if rst = '1' then
     i <= 0;
-    i_tc <= '0';
     V_in(0)(0) <= to_sfixed(1, 9, -6);
     V_in(0)(1) <= to_sfixed(0, 9, -6);
     V_in(1)(0) <= to_sfixed(0, 9, -6);
@@ -109,13 +108,11 @@ end if;
    
 if j_done = '1' then
     i <= i+1;
+
+end if;
     if i = 100 then -- iterate until convergence approximately
         i <= 0;
     end if;
-end if;
-if i = 100 and j_done = '1' then
-    i_tc <= '1';
-end if;
 
 if upd = '1' then
     V_in <= V_prime;
@@ -124,6 +121,14 @@ end if;
 end if;
 
 end process jacobicount;
+
+process(i) begin
+if i = 100 then
+    i_tc <= '1';
+else
+    i_tc <= '0';
+end if;
+end process;
 
 -------------Build SVD matrices---------------
 counter_K : process(clk)
@@ -134,7 +139,6 @@ begin
 if rising_edge(clk) then
 if rst = '1' then
     k <= 0;
-    K_TC <= '0';
 end if;
 if u_en = '1' then
     k <= k+1; 
@@ -142,11 +146,18 @@ if u_en = '1' then
         k <= 0;
     end if;       
 end if;
-if k = 1 and u_en = '1' then
-    K_TC <= '1';
-end if;      
+ 
 end if;
 end process counter_K;
+
+process(k, u_en) begin
+if k = 1 and u_en = '1' then
+    K_TC <= '1';
+else
+    K_TC <= '0';
+end if;     
+end process;
+
 
 -- Build the matrix Sigma of the singular values
 build1 : process (clk)

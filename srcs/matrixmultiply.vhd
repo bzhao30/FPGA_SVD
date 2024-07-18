@@ -32,78 +32,72 @@ begin
 ------------------ THREE COUNTERS I J K --------------------------
   counter_K : process(clk, rst, calc, k)
   begin
-    
-
-    
     if rising_edge(clk) then
-    if rst = '1' then
-      k <= 0;
-      K_TC <= '0';
-    end if;
-    if calc = '1' then
-      k <= k+1; 
-      if k = 1 then
+      if rst = '1' then
         k <= 0;
-      end if;       
+      elsif calc = '1' then
+        k <= k + 1;
+        if k = 1 then
+          k <= 0;
+        end if;
+      end if;
     end if;
-    end if;
-    if k = 1 then
-      K_TC <= '1';
-    else
-      K_TC <= '0';
-    end if;      
-
   end process counter_K;
 
-  counter_J : process(clk, rst, k_TC, j, k)
+  counter_J : process(clk, rst, K_TC, j, k)
   begin
-
-
-
     if rising_edge(clk) then
-    if rst = '1' then
-      j <= 0;
-      J_TC <= '0';
-    end if;
-    if k_TC = '1' then
-      j <= j+1;    
-      if j = 1 then
+      if rst = '1' then
         j <= 0;
-      end if;       
+      elsif K_TC = '1' then
+        j <= j + 1;
+        if j = 1 then
+          j <= 0;
+        end if;
+      end if;
     end if;
-    end if;
-    if j = 1 and k = 1 then
-      J_TC <= '1';
-    else
-      J_TC <= '0';
-    end if;   
-
   end process counter_J;
 
   counter_I : process(clk, rst, J_TC, i, j)
   begin
-
-
-
     if rising_edge(clk) then
-    if rst = '1' then
-      i <= 0;
-      I_TC <= '0';
-    end if;
-    if J_TC = '1' then
-      i <= i+1;  
-      if i = 1 then
+      if rst = '1' then
         i <= 0;
-      end if;       
+      elsif J_TC = '1' then
+        i <= i + 1;
+        if i = 1 then
+          i <= 0;
+        end if;
+      end if;
     end if;
+  end process counter_I;
+
+  K_TC_process : process(k)
+  begin
+    if k = 1 then
+      K_TC <= '1';
+    else
+      K_TC <= '0';
     end if;
+  end process K_TC_process;
+
+  J_TC_process : process(j, k)
+  begin
+    if j = 1 and k = 1 then
+      J_TC <= '1';
+    else
+      J_TC <= '0';
+    end if;
+  end process J_TC_process;
+
+  I_TC_process : process(i, j, k)
+  begin
     if i = 1 and j = 1 and k = 1 then
       I_TC <= '1';
     else
       I_TC <= '0';
-    end if;   
-
-  end process counter_I;
+    end if;
+  end process I_TC_process;
 
 ------------------ CALCULATION ------------------
 

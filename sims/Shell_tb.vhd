@@ -10,11 +10,12 @@ architecture testbench of shell_tb is
 component shell is
 port(
     RxExtPort : in std_logic;
-    clkextport : in std_logic;
+    clkExtPort : in std_logic;
+    buttonPort : in std_logic;
     TxExtPort : out std_logic);
 end component;
 
-signal Rx, clkextport, Tx : std_logic := '0';
+signal Rx, clkextport, Tx, buttonPort : std_logic := '0';
 
 begin
 
@@ -22,6 +23,7 @@ uut: shell
 PORT MAP(
     RxExtPort => Rx,
     clkextport => clkextport,
+    buttonport => buttonport,
     TxExtPort => Tx);
     
 clock: process
