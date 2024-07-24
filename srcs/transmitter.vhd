@@ -16,7 +16,7 @@ end transmitter;
 
 architecture behavioral of transmitter is
 
-signal data : std_logic_vector(1019 downto 0);
+signal data : std_logic_vector(1019 downto 0) := (others => '1');
 
 signal t_en, baud_tc, bit_tc, s_tc, s_en, r_en, rst : std_logic := '0';
 signal tx_sig : std_logic := '1';
@@ -85,7 +85,11 @@ begin
 if rising_edge(clk) then
 
     if t_en = '1' then
-        tx_sig <= data(1019 - bitcount);
+        if baud_tc = '1' then
+        tx_sig <= data(1019);
+        data <= data(1018 downto 0) & '1';
+        end if;
+        count := 0;
     else
         tx_sig <= '1';
     end if;
@@ -113,7 +117,6 @@ if rising_edge(clk) then
         
         count := count + 1;
         if count = 101 then
-            count := 0;
             s_tc <= '1';
         end if;
     end if;
