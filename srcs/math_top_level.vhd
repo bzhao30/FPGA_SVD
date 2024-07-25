@@ -110,7 +110,7 @@ if j_done = '1' then
     i <= i+1;
 
 end if;
-    if i = 100 then -- iterate until convergence approximately
+    if i = 61then -- iterate until convergence approximately
         i <= 0;
     end if;
 
@@ -123,7 +123,7 @@ end if;
 end process jacobicount;
 
 process(i) begin
-if i = 100 then
+if i = 61 then
     i_tc <= '1';
 else
     i_tc <= '0';
