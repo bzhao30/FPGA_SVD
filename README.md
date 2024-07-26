@@ -1,5 +1,5 @@
 # FPGA_SVD by Brandon Zhao
-## FPGA implementation of singular value decomposition
+## FPGA implementation of singular value decomposition on Basys-3
 
 This is a project for my digital electronics class using the Basys3 FPGA
 
